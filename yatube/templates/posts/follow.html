@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}<title>Последние обновления у ваших любимых авторов</title>{% endblock %}
+{% block content %}
+
+<main>
+  <div class="container py-5">
+    <h1>Последние обновления у ваших любимых авторов</h1>
+    <article>
+      {% if not page_obj %}
+      <p>Подпишитесь на кого-нибудь, чтобы следить за его постами :)</p>
+      {% endif %}
+      {% for post in page_obj %}
+        {% include 'includes/posts.html' %}
+      {% endfor %}
+      {% include 'posts/includes/paginator.html' %}
+    </article>
+  </div>
+</main>
+
+{% endblock %}

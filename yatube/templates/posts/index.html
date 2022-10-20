@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}<title>Последние обновления на сайте</title>{% endblock %}
+{% block content %}
+
+<main>
+  <div class="container py-5">
+    <h1>Последние обновления на сайте</h1>
+    <article>
+      {% load cache %}
+      {% cache 20 index_page %}
+      {% include 'posts/includes/switcher.html' %}
+      {% for post in object_list %}
+        {% include 'includes/posts.html' %}
+      {% endfor %}
+      {% include 'posts/includes/paginator.html' %}
+      {% endcache %}
+    </article>
+  </div>
+</main>
+
+{% endblock %}

@@ -5,8 +5,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView
 
-from .forms import *
-from .models import *
+from .forms import PostForm, CommentForm
+from .models import Group, Post, Comment, Follow, User
 from .utils import page_create
 
 POST_ON_PAGE = 10
@@ -44,7 +44,9 @@ class GroupPosts(ListView):
         return context
 
     def get_queryset(self):
-        return Post.objects.select_related('group').filter(group__slug=self.kwargs['group_slug'])
+        return Post.objects.select_related('group').filter(
+            group__slug=self.kwargs['group_slug']
+        )
 
 
 # def group_posts(request, group_slug):
@@ -68,13 +70,22 @@ class Profile(ListView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['username'] = User.objects.get(username=self.kwargs['username'])
-        context['count'] = Post.objects.filter(author__username=self.kwargs['username']).count()
-        context['following'] = self.request.user.is_authenticated and context['username'].following.exists()
+        context['username'] = User.objects.get(
+            username=self.kwargs['username']
+        )
+        context['count'] = Post.objects.filter(
+            author__username=self.kwargs['username']
+        ).count()
+        context['following'] = (self.request.user.is_authenticated and
+                                context['username'].following.exists())
         return context
 
     def get_queryset(self):
-        return Post.objects.select_related('group').filter(author__username=self.kwargs['username'])
+        return Post.objects.select_related('group').filter(
+            author__username=self.kwargs['username']
+        )
+
+
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts = Post.objects.select_related('group').filter(author=author)
@@ -98,7 +109,9 @@ class ShowPost(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.select_related('post').filter(post_id=context['posts'])
+        context['comments'] = Comment.objects.select_related('post').filter(
+            post_id=context['posts']
+        )
         context['form'] = CommentForm()
         return context
 
@@ -194,6 +207,7 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
 
 @login_required
 def follow_index(request):

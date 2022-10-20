@@ -1,6 +1,11 @@
 from django.urls import path
 from . import views
-from .views import *
+from .views import (
+    Home, GroupPosts, profile,
+    ShowPost, PostCreate, post_edit,
+    add_comment, follow_index, profile_follow,
+    profile_unfollow,
+)
 
 app_name = 'posts'
 
@@ -14,7 +19,11 @@ urlpatterns = [
     path('posts/<int:post_id>/', ShowPost.as_view(), name='post_detail'),
     path('create/', PostCreate.as_view(), name='post_create'),
     path('posts/<post_id>/edit/', views.post_edit, name='post_update'),
-    path('posts/<int:post_id>/comment/', views.add_comment, name='add_comment'),
+    path(
+        'posts/<int:post_id>/comment/',
+        views.add_comment,
+        name='add_comment'
+    ),
     path('follow/', views.follow_index, name='follow_index'),
     path(
         'profile/<str:username>/follow/',

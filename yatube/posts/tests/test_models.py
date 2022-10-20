@@ -34,14 +34,3 @@ class PostModelTest(TestCase):
         )
         post_text = post_2.text
         self.assertEqual(post_text[:15], str(post_2)[:15])
-
-    # def test_check_following(self):
-    #     """Проверка доступности подписки авторизованному пользователю"""
-    #     user2 = User.objects.create_user(username='follower')
-    #     user_follower = Client()
-    #     user_follower.force_login(user2)
-    #     response = user_follower.get(
-    #         reverse(
-    #             'posts:profile', kwargs={'username': 'StasBasov'}
-    #         )
-    #     )

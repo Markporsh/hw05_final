@@ -39,7 +39,9 @@ class TaskPagesTests(TestCase):
             content_type='image/gif'
         )
         for i in range(14):
-            Post.objects.create(text='тест', author_id=1, group=group, image=cls.uploaded)
+            Post.objects.create(
+                text='тест', author_id=1, group=group, image=cls.uploaded
+            )
 
     @classmethod
     def tearDownClass(cls):
@@ -255,7 +257,8 @@ class TaskPagesTests(TestCase):
         self.assertTrue(new_post.text in first_object)
 
     def test_posts_followers(self):
-        """Проверка пост появляется после подписки на автора в ленте на главной странице"""
+        """Проверка пост появляется после подписки
+         на автора в ленте на главной странице"""
         user2 = User.objects.create_user(username='follower')
         authorized_client2 = Client()
         authorized_client2.force_login(user2)
@@ -265,5 +268,7 @@ class TaskPagesTests(TestCase):
         user3 = User.objects.create_user(username='not_follower')
         authorized_client3 = Client()
         authorized_client3.force_login(user3)
-        response_unfollower = authorized_client3.get(reverse('posts:follow_index'))
+        response_unfollower = authorized_client3.get(
+            reverse('posts:follow_index')
+        )
         self.assertEqual(len(response_unfollower.context['page_obj']), 0)

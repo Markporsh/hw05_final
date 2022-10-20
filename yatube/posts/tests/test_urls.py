@@ -140,5 +140,3 @@ class StaticURLTests(TestCase):
         self.assertEqual(response_2.status_code, 302)
         followers = Follow.objects.count()
         self.assertEqual(0, followers)
-
-

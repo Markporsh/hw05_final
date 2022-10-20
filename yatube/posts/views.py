@@ -75,17 +75,19 @@ class Profile(ListView):
 
     def get_queryset(self):
         return Post.objects.select_related('group').filter(author__username=self.kwargs['username'])
-# def profile(request, username):
-#     author = get_object_or_404(User, username=username)
-#     posts = Post.objects.select_related('group').filter(author=author)
-#     page_obj = page_create(request, posts)
-#     context = {
-#         'author': author,
-#         'posts': posts,
-#         'page_obj': page_obj,
-#         'username': username,
-#     }
-#     return render(request, 'posts/profile.html', context)
+def profile(request, username):
+    author = get_object_or_404(User, username=username)
+    posts = Post.objects.select_related('group').filter(author=author)
+    page_obj = page_create(request, posts)
+    following = request.user.is_authenticated and username.following.exists()
+    context = {
+        'author': author,
+        'posts': posts,
+        'page_obj': page_obj,
+        'username': username,
+        'following': following,
+    }
+    return render(request, 'posts/profile.html', context)
 
 
 class ShowPost(DetailView):

@@ -20,15 +20,6 @@ class Home(ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
-# def index(request):
-#     posts = Post.objects.select_related('group').all()
-#     page_obj = page_create(request, posts)
-#     context = {
-#         'posts': posts,
-#         'page_obj': page_obj,
-#     }
-#     template = 'posts/index.html'
-#     return render(request, template, context)
 
 
 class GroupPosts(ListView):
@@ -49,48 +40,11 @@ class GroupPosts(ListView):
         )
 
 
-# def group_posts(request, group_slug):
-#     group = get_object_or_404(Group, slug=group_slug)
-#     posts = group.group_posts.all()
-#     page_obj = page_create(request, posts)
-#     context = {
-#         'group': group,
-#         'posts': posts,
-#         'page_obj': page_obj,
-#     }
-#     return render(request, 'posts/group_list.html', context)
-
-
-class Profile(ListView):
-    model = Post
-    template_name = 'posts/profile.html'
-    context_object_name = 'posts'
-    allow_empty = False
-    paginate_by = POST_ON_PAGE
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['username'] = User.objects.get(
-            username=self.kwargs['username']
-        )
-        context['count'] = Post.objects.filter(
-            author__username=self.kwargs['username']
-        ).count()
-        context['following'] = (self.request.user.is_authenticated
-                                and context['username'].following.exists())
-        return context
-
-    def get_queryset(self):
-        return Post.objects.select_related('group').filter(
-            author__username=self.kwargs['username']
-        )
-
-
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts = Post.objects.select_related('group').filter(author=author)
     page_obj = page_create(request, posts)
-    following = request.user.is_authenticated and username.following.exists()
+    following = request.user.is_authenticated and author.following.exists()
     context = {
         'author': author,
         'posts': posts,
@@ -116,19 +70,6 @@ class ShowPost(DetailView):
         return context
 
 
-# def post_detail(request, post_id):
-#     posts = get_object_or_404(Post, pk=post_id)
-#     form = CommentForm(request.POST or None)
-#     comments = Comment.objects.select_related('post').filter(post=posts)
-#     template = 'posts/post_detail.html'
-#     context = {
-#         'posts': posts,
-#         'form': form,
-#         'comments': comments,
-#     }
-#     return render(request, template, context)
-
-
 class PostCreate(LoginRequiredMixin, CreateView):
     form_class = PostForm
     template_name = 'posts/create_post.html'
@@ -141,21 +82,6 @@ class PostCreate(LoginRequiredMixin, CreateView):
         form.save(commit=False).author_id = self.request.user.pk
         form.save()
         return redirect('posts:profile', username=self.request.user)
-
-# @login_required
-# def post_create(request):
-#     if request.method == 'POST':
-#         form = PostForm(request.POST, files=request.FILES or None)
-#         if form.is_valid():
-#             form.save(commit=False).author_id = request.user.pk
-#             form.save()
-#             return redirect('posts:profile', username=request.user)
-#         return render(request, 'posts/create_post.html', {'form': form})
-#     form = PostForm()
-#     context = {
-#         'form': form,
-#     }
-#     return render(request, 'posts/create_post.html', context)
 
 
 @login_required
@@ -182,20 +108,6 @@ def post_edit(request, post_id):
     }
     return render(request, template, context)
 
-
-# class AddComment(LoginRequiredMixin, CreateView):
-#     form_class = CommentForm
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         return context
-#
-#     def form_valid(self, form):
-#         comment = form.save(commit=False)
-#         comment.author = self.request.user
-#         comment.post = Post.objects.get(id=self.kwargs['post_id'])
-#         comment.save()
-#         return redirect('posts:post_detail', post_id=self.kwargs['post_id'])
 
 @login_required
 def add_comment(request, post_id):

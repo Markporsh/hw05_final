@@ -54,7 +54,7 @@ class Comment(CreatedModel):
         verbose_name='Коментарий'
     )
     text = models.TextField(verbose_name='Текст комментария')
-    
+
 
 class Follow(models.Model):
     user = models.ForeignKey(

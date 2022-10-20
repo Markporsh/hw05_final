@@ -1,11 +1,7 @@
 from django.urls import path
 from . import views
-from .views import (
-    Home, GroupPosts, profile,
-    ShowPost, PostCreate, post_edit,
-    add_comment, follow_index, profile_follow,
-    profile_unfollow,
-)
+from .views import Home, GroupPosts, ShowPost, PostCreate
+
 
 app_name = 'posts'
 

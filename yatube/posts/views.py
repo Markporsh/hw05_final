@@ -76,8 +76,8 @@ class Profile(ListView):
         context['count'] = Post.objects.filter(
             author__username=self.kwargs['username']
         ).count()
-        context['following'] = (self.request.user.is_authenticated and
-                                context['username'].following.exists())
+        context['following'] = (self.request.user.is_authenticated
+                                and context['username'].following.exists())
         return context
 
     def get_queryset(self):

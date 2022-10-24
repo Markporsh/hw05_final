@@ -274,8 +274,6 @@ class TaskPagesTests(TestCase):
         )
         self.assertEqual(len(response_unfollower.context['page_obj']), 0)
 
-
-
     def test_check_following(self):
         """Проверка доступности подписки авторизованному пользователю"""
         user2 = User.objects.create_user(username='follower')

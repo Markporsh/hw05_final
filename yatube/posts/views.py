@@ -1,10 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView
-
 from .forms import PostForm, CommentForm
 from .models import Group, Post, Comment, Follow, User
 from .utils import paginate_posts

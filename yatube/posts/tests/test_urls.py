@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 from http import HTTPStatus
-from posts.models import Group, Post, Follow
+from posts.models import Group, Post
 
 
 User = get_user_model()
@@ -104,5 +104,3 @@ class StaticURLTests(TestCase):
         """Страница с несуществующим адесом."""
         response = self.authorized_client.get('/somepage/')
         self.assertEqual(response.status_code, 404)
-
-

@@ -274,19 +274,7 @@ class TaskPagesTests(TestCase):
         )
         self.assertEqual(len(response_unfollower.context['page_obj']), 0)
 
-    def test_comments(self):
-        """Комметарии доступны только авторизованному пользователю."""
-        response_guest = self.guest_client.get(
-            reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
-            )
-        )
-        response_register = self.authorized_client.get(
-            reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
-            )
-        )
-        self.assertNotEqual(response_register, response_guest)
+
 
     def test_check_following(self):
         """Проверка доступности подписки авторизованному пользователю"""
@@ -309,3 +297,39 @@ class TaskPagesTests(TestCase):
         self.assertEqual(response_2.status_code, 302)
         followers = Follow.objects.count()
         self.assertEqual(0, followers)
+
+
+class CommentsTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        group = Group.objects.create(
+            title='Тестовый заголовок',
+            description='Тестовое описание',
+            slug='test-slug'
+        )
+        for _ in range(14):
+            Post.objects.create(
+                text='тест', author_id=1, group=group
+            )
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='StasBasov')
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.guest_client = Client()
+
+    def test_comments(self):
+        """Комметарии доступны только авторизованному пользователю."""
+        response_guest = self.guest_client.get(
+            reverse(
+                'posts:add_comment', kwargs={'post_id': 1}
+            )
+        )
+        response_register = self.authorized_client.get(
+            reverse(
+                'posts:add_comment', kwargs={'post_id': 1}
+            )
+        )
+        self.assertNotEqual(response_register, response_guest)

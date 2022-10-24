@@ -4,9 +4,9 @@ from .models import Comment, Post
 
 class PostForm(forms.ModelForm):
     help_text = {
-        'text': 'models.TextField',
-        'group': 'models.ForeignKey(Group, blank=True)',
-        'image': 'models.ImageField',
+        'text': 'Введите текст поста',
+        'group': 'Выберитте группу',
+        'image': 'Вставьте картинку',
     }
 
     class Meta:
@@ -15,11 +15,6 @@ class PostForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
-    help_text = {
-        'text': 'models.TextField',
-        'group': 'models.ForeignKey(Group, blank=True)',
-        'image': 'models.ImageField',
-    }
 
     class Meta:
         model = Comment

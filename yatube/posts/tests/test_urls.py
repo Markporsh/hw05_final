@@ -105,38 +105,4 @@ class StaticURLTests(TestCase):
         response = self.authorized_client.get('/somepage/')
         self.assertEqual(response.status_code, 404)
 
-    def test_comments(self):
-        """Комметарии доступны только авторизованному пользователю."""
-        response_guest = self.guest_client.get(
-            reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
-            )
-        )
-        response_register = self.authorized_client.get(
-            reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
-            )
-        )
-        self.assertNotEqual(response_register, response_guest)
 
-    def test_check_following(self):
-        """Проверка доступности подписки авторизованному пользователю"""
-        user2 = User.objects.create_user(username='follower')
-        authorized_client2 = Client()
-        authorized_client2.force_login(user2)
-        response = authorized_client2.get(
-            reverse(
-                'posts:profile_follow', kwargs={'username': 'HasNoName'}
-            )
-        )
-        self.assertEqual(response.status_code, 302)
-        followers = Follow.objects.count()
-        self.assertEqual(1, followers)
-        response_2 = authorized_client2.get(
-            reverse(
-                'posts:profile_unfollow', kwargs={'username': 'HasNoName'}
-            )
-        )
-        self.assertEqual(response_2.status_code, 302)
-        followers = Follow.objects.count()
-        self.assertEqual(0, followers)

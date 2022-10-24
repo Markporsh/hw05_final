@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from core.models import CreatedModel
+from core.models import TimeModelMixin
 
 
 User = get_user_model()
@@ -23,7 +23,7 @@ class Group(models.Model):
         return reverse('group_list', kwargs={'group_slug': self.slug})
 
 
-class Post(CreatedModel):
+class Post(TimeModelMixin):
     text = models.TextField(verbose_name='Текст')
     group = models.ForeignKey(
         Group,
@@ -38,6 +38,11 @@ class Post(CreatedModel):
         upload_to='posts/',
         blank=True
     )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
+    )
 
     class Meta:
         ordering = ['-pub_date']
@@ -46,7 +51,7 @@ class Post(CreatedModel):
         return self.text
 
 
-class Comment(CreatedModel):
+class Comment(TimeModelMixin):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
@@ -54,13 +59,19 @@ class Comment(CreatedModel):
         verbose_name='Коментарий'
     )
     text = models.TextField(verbose_name='Текст комментария')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
+    )
 
 
 class Follow(models.Model):
     user = models.ForeignKey(
         User,
         related_name='follower',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Подписчики'
     )
     author = models.ForeignKey(
         User,

@@ -1,20 +1,19 @@
 from django.urls import path
 from . import views
-from .views import Home, GroupPosts, ShowPost, PostCreate
 
 
 app_name = 'posts'
 
 urlpatterns = [
-    path('', Home.as_view(), name='homepage'),
+    path('', views.index, name='homepage'),
     path(
         'group/<group_slug>/',
-        GroupPosts.as_view(), name='group_list'
+        views.group_posts, name='group_list'
     ),
     path('profile/<str:username>/', views.profile, name='profile'),
-    path('posts/<int:post_id>/', ShowPost.as_view(), name='post_detail'),
-    path('create/', PostCreate.as_view(), name='post_create'),
-    path('posts/<post_id>/edit/', views.post_edit, name='post_update'),
+    path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('create/', views.post_create, name='post_create'),
+    path('posts/<int:post_id>/edit/', views.post_edit, name='post_update'),
     path(
         'posts/<int:post_id>/comment/',
         views.add_comment,

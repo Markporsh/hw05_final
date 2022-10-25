@@ -193,7 +193,9 @@ class TaskPagesTests(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_post_on_homepage(self):
-        new_post = Post.objects.create(text='Тестируем', author_id=self.user.id)
+        new_post = Post.objects.create(
+            text='Тестируем', author_id=self.user.id
+        )
         response = self.authorized_client.get(reverse('posts:homepage'))
         homepage = response.context.get('page_obj').object_list[0]
         self.assertEqual(homepage, new_post)

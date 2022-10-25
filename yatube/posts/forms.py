@@ -3,7 +3,7 @@ from .models import Comment, Post
 
 
 class PostForm(forms.ModelForm):
-    help_text = {
+    help_texts = {
         'text': 'Введите текст поста',
         'group': 'Выберитте группу',
         'image': 'Вставьте картинку',
@@ -15,6 +15,11 @@ class PostForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
+    help_texts = {
+        'post': 'Пост комметария',
+        'text': 'Текст комментария',
+        'author': 'Автор комментария',
+    }
 
     class Meta:
         model = Comment

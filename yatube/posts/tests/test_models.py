@@ -33,4 +33,4 @@ class PostModelTest(TestCase):
             text='Тестируем количество симвлов текста'
         )
         post_text = post_2.text
-        self.assertEqual(post_text[:15], str(post_2)[:15])
+        self.assertEqual(post_text[:15], str(post_2))

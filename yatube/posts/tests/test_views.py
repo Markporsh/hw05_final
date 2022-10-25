@@ -1,6 +1,6 @@
 import shutil
 import tempfile
-
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -20,6 +20,7 @@ class TaskPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.user = User.objects.create_user(username='StasBasov')
         group = Group.objects.create(
             title='Тестовый заголовок',
             description='Тестовое описание',
@@ -40,7 +41,7 @@ class TaskPagesTests(TestCase):
         )
         for i in range(14):
             Post.objects.create(
-                text='тест', author_id=1, group=group, image=cls.uploaded
+                text=i, author_id=cls.user.id, group=group, image=cls.uploaded
             )
 
     @classmethod
@@ -49,7 +50,6 @@ class TaskPagesTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
-        self.user = User.objects.create_user(username='StasBasov')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.guest_client = Client()
@@ -83,7 +83,10 @@ class TaskPagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:homepage'))
         first_object = response.context['page_obj'][0]
         task_title_0 = first_object.text
-        self.assertEqual(task_title_0, 'тест')
+        self.assertEqual(
+            task_title_0,
+            Post.objects.order_by('-pub_date')[0].text
+        )
 
     def test_first_homepage_page_contains_ten_records(self):
         response = self.client.get(reverse('posts:homepage'))
@@ -124,11 +127,14 @@ class TaskPagesTests(TestCase):
         self.assertEqual(len(response.context['page_obj']), 4)
 
     def test_profile_show_correct_context(self):
-        """Шаблон group_list сформирован с правильным контекстом."""
+        """Шаблон profile сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:profile', kwargs={'username': 'StasBasov'})
         )
-        self.assertEqual(response.context.get('posts')[0].text, 'тест')
+        self.assertEqual(
+            response.context.get('posts')[0].text,
+            Post.objects.order_by('-pub_date')[0].text
+        )
 
     def test_first_profile_page_contains_ten_records(self):
         response = self.client.get(
@@ -146,9 +152,14 @@ class TaskPagesTests(TestCase):
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': '1'})
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': Post.objects.order_by('id')[0].id}
+            )
         )
-        self.assertEqual(response.context.get('posts').text, 'тест')
+        self.assertEqual(
+            response.context.get('posts').text,
+            Post.objects.order_by('id')[0].text)
 
     def test_create_show_correct_context(self):
         """Шаблон create сформирован с правильным контекстом."""
@@ -166,7 +177,10 @@ class TaskPagesTests(TestCase):
     def test_update_show_correct_context(self):
         """Шаблон update сформирован с правильным контекстом."""
         response = self.authorized_client.get(
-            reverse('posts:post_update', kwargs={'post_id': '2'})
+            reverse(
+                'posts:post_update',
+                kwargs={'post_id': Post.objects.order_by('id')[1].id}
+            )
         )
         form_fields = {
             'group': forms.fields.ChoiceField,
@@ -179,7 +193,7 @@ class TaskPagesTests(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_post_on_homepage(self):
-        new_post = Post.objects.create(text='Тестируем', author_id=1)
+        new_post = Post.objects.create(text='Тестируем', author_id=self.user.id)
         response = self.authorized_client.get(reverse('posts:homepage'))
         homepage = response.context.get('page_obj').object_list[0]
         self.assertEqual(homepage, new_post)
@@ -191,7 +205,7 @@ class TaskPagesTests(TestCase):
             slug='test-slug-group'
         )
         new_post = Post.objects.create(
-            text='Тестируем группу', author_id=1, group=group
+            text='Тестируем группу', author_id=self.user.id, group=group
         )
         response = self.authorized_client.get(
             reverse(
@@ -238,13 +252,17 @@ class TaskPagesTests(TestCase):
     def test_image_in_context_post(self):
         """Шаблон post сформирован с картинкой в контексте."""
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': '1'})
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': Post.objects.order_by('id')[0].id}
+            )
         )
         first_object = response.context['posts'].image
         self.assertIsNotNone(first_object)
 
     def test_cache(self):
         """Проверка кэширования постов на Главной"""
+        cache.clear()
         new_post = Post.objects.create(
             text='Тест кеша',
             author_id=self.user.id,
@@ -255,7 +273,10 @@ class TaskPagesTests(TestCase):
         first_object = response.context['posts'][0].text
         self.assertEqual(first_object, new_post.text)
         new_post.delete()
-        self.assertTrue(new_post.text in first_object)
+        response_del = self.authorized_client.get(
+            reverse('posts:homepage')
+        )
+        self.assertEqual(response.content, response_del.content)
 
     def test_posts_followers(self):
         """Проверка пост появляется после подписки
@@ -302,18 +323,18 @@ class CommentsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.user = User.objects.create_user(username='StasComm')
         group = Group.objects.create(
-            title='Тестовый заголовок',
-            description='Тестовое описание',
-            slug='test-slug'
+            title='Тестовый заголовок комментов',
+            description='Тестовое описание комментов',
+            slug='test-slug-comm'
         )
-        for _ in range(14):
+        for i in range(14):
             Post.objects.create(
-                text='тест', author_id=1, group=group
+                text=i, author_id=cls.user.id, group=group
             )
 
     def setUp(self):
-        self.user = User.objects.create_user(username='StasBasov')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.guest_client = Client()
@@ -322,12 +343,14 @@ class CommentsTests(TestCase):
         """Комметарии доступны только авторизованному пользователю."""
         response_guest = self.guest_client.get(
             reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
+                'posts:add_comment',
+                kwargs={'post_id': Post.objects.order_by('id')[0].id}
             )
         )
         response_register = self.authorized_client.get(
             reverse(
-                'posts:add_comment', kwargs={'post_id': 1}
+                'posts:add_comment',
+                kwargs={'post_id': Post.objects.order_by('id')[0].id}
             )
         )
         self.assertNotEqual(response_register, response_guest)

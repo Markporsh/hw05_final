@@ -19,7 +19,7 @@ class TaskCreateFormTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='Test')
-        Post.objects.create(
+        cls.post = Post.objects.create(
             text='Тестовый текст',
             author_id=cls.user.id,
         )
@@ -38,7 +38,7 @@ class TaskCreateFormTests(TestCase):
         """Валидная форма создает запись в Post."""
         posts_count = Post.objects.count()
         form_data = {
-            'text': 'Тестовый текст',
+            'text': 'Тестовый текст для проверки валидностки',
             'author_id': self.user.id
         }
         response = self.authorized_client.post(
@@ -54,7 +54,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый текст',
+                text=form_data['text'],
                 author_id=self.user.id
             ).exists()
         )
@@ -66,29 +66,29 @@ class TaskCreateFormTests(TestCase):
             'author_id': self.user.id,
         }
         response = self.authorized_client.post(
-            reverse('posts:post_update', kwargs={'post_id': 1}),
+            reverse('posts:post_update', kwargs={'post_id': self.post.id}),
             data=form_data,
             follow=True
         )
         self.assertRedirects(
             response, reverse(
-                'posts:post_detail', kwargs={'post_id': 1}
+                'posts:post_detail', kwargs={'post_id': self.post.id}
             )
         )
         self.assertEqual(Post.objects.count(), 1)
         self.assertTrue(
             Post.objects.filter(
-                text='Измененный текст',
+                text=form_data['text'],
                 author=self.user.id
             ).exists()
         )
         test_user = User.objects.create_user(username='Test_validity')
         self.authorized_client.force_login(test_user)
         response_2 = self.authorized_client.post(
-            reverse('posts:post_update', kwargs={'post_id': 1}),
+            reverse('posts:post_update', kwargs={'post_id': self.post.id}),
         )
         self.assertRedirects(
             response_2, reverse(
-                'posts:post_detail', kwargs={'post_id': 1}
+                'posts:post_detail', kwargs={'post_id': self.post.id}
             )
         )

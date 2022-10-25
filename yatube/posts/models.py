@@ -36,7 +36,8 @@ class Post(TimeModelMixin):
     image = models.ImageField(
         'Картинка',
         upload_to='posts/',
-        blank=True
+        blank=True,
+        null=True,
     )
     author = models.ForeignKey(
         User,
@@ -48,7 +49,7 @@ class Post(TimeModelMixin):
         ordering = ['-pub_date']
 
     def __str__(self):
-        return self.text
+        return self.text[:15]
 
 
 class Comment(TimeModelMixin):
@@ -76,7 +77,8 @@ class Follow(models.Model):
     author = models.ForeignKey(
         User,
         related_name='following',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Автор подписки'
     )
 
     class Meta:

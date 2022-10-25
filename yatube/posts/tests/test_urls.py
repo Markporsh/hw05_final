@@ -11,30 +11,40 @@ User = get_user_model()
 class StaticURLTests(TestCase):
     def setUp(self):
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='HasNoName')
+
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.user = User.objects.create_user(username='HasNoName')
         # Создадим запись в БД для проверки доступности адреса task/test-slug/
-        Group.objects.create(
+        cls.group = Group.objects.create(
             title='Тестовый заголовок',
             description='Тестовое описание',
             slug='test-slug'
         )
-        Post.objects.create(text='тест', author_id=1)
+        cls.post = Post.objects.create(text='тест', author_id=cls.user.id)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         # Шаблоны по адресам
         templates_url_names = {
-            '/': 'posts/index.html',
-            '/group/test-slug/': 'posts/group_list.html',
-            '/profile/HasNoName/': 'posts/profile.html',
-            '/posts/1/edit/': 'posts/create_post.html',
-            '/create/': 'posts/create_post.html',
+            reverse('posts:homepage'): 'posts/index.html',
+            reverse(
+                'posts:group_list',
+                kwargs={'group_slug': self.group.slug}
+            ): 'posts/group_list.html',
+            reverse(
+                'posts:profile',
+                kwargs={'username': self.user}
+            ): 'posts/profile.html',
+            reverse(
+                'posts:post_update',
+                kwargs={'post_id': self.post.id}
+            ): 'posts/create_post.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
